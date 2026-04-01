@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python3 -m venv venv)",
+      "Bash(source venv/bin/activate)",
+      "Read(//usr/local/bin/**)",
+      "Bash(brew --version)",
+      "Bash(curl -LsSf https://astral.sh/uv/install.sh)",
+      "Bash(sh)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(uv python:*)",
+      "Bash(rm -rf venv)",
+      "Bash(uv venv:*)",
+      "Bash(uv pip:*)",
+      "Bash(pip show:*)",
+      "Bash(python -m pip show google-ads)",
+      "Bash(python -c \"import google.ads.googleads; print\\(google.ads.googleads.__version__\\)\")",
+      "Bash(python scripts/verify_connection.py)",
+      "Bash(python -c \":*)"
+    ]
+  }
+}
