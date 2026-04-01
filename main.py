@@ -29,6 +29,7 @@ def main():
         port = os.environ.get("PORT", "8000")
         print(f"Starting Google Ads MCP Server on {host}:{port}")
         print(f"MCP endpoint: http://{host}:{port}/mcp")
+        print(f"Health check: http://{host}:{port}/health")
         mcp.run(transport="streamable-http")
 
 
