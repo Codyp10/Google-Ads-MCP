@@ -24,12 +24,8 @@ def main():
         import uvicorn
         import anyio
 
-        host = os.environ.get("HOST", "0.0.0.0")
+        host = "0.0.0.0"
         port = int(os.environ.get("PORT", 8000))
-
-        # Override the settings so streamable_http_app picks them up
-        mcp.settings.host = host
-        mcp.settings.port = port
 
         print(f"Starting Google Ads MCP Server on {host}:{port}")
         print(f"MCP endpoint: http://{host}:{port}/mcp")
