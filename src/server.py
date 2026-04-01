@@ -45,9 +45,15 @@ mcp = FastMCP(
 )
 
 
-# Health check endpoint for Railway/Render
+# Health check endpoints for Railway/Render
 @mcp.custom_route("/health", methods=["GET"])
 async def health(request):
+    from starlette.responses import JSONResponse
+    return JSONResponse({"status": "ok", "server": "Google Ads MCP"})
+
+
+@mcp.custom_route("/", methods=["GET"])
+async def root(request):
     from starlette.responses import JSONResponse
     return JSONResponse({"status": "ok", "server": "Google Ads MCP"})
 
