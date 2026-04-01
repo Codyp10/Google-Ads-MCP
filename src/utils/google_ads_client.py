@@ -1,28 +1,29 @@
 """
 Google Ads API client wrapper.
 Provides a singleton-style client with active account management.
+All imports are lazy to avoid DNS resolution at server startup.
 """
 
 import os
 from pathlib import Path
-from google.ads.googleads.client import GoogleAdsClient
 
 # Resolve config path — check env var first, then default location
 _DEFAULT_YAML = str(Path(__file__).resolve().parent.parent.parent / "google-ads.yaml")
 GOOGLE_ADS_YAML = os.environ.get("GOOGLE_ADS_YAML_PATH", _DEFAULT_YAML)
 
 # Module-level state
-_client: GoogleAdsClient | None = None
+_client = None
 _active_customer_id: str | None = None
 
 
-def get_client() -> GoogleAdsClient:
+def get_client():
     """Return the GoogleAdsClient, creating it on first call.
     Supports both yaml file (local) and environment variables (deployed).
     """
     global _client
     if _client is None:
-        # If env vars are set, use them (for Railway/Render deployment)
+        from google.ads.googleads.client import GoogleAdsClient
+
         if os.environ.get("GOOGLE_ADS_DEVELOPER_TOKEN"):
             _client = GoogleAdsClient.load_from_dict({
                 "developer_token": os.environ["GOOGLE_ADS_DEVELOPER_TOKEN"],
