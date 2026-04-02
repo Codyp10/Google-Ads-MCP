@@ -28,6 +28,19 @@ from src.tools.assets import (
 )
 from src.tools.pmax import create_pmax_campaign, create_asset_group
 from src.tools.structure import preview_structure, push_structure
+from src.tools.reporting import (
+    get_campaign_performance,
+    get_ad_group_performance,
+    get_keyword_performance,
+    get_search_terms_report,
+    get_ad_performance,
+)
+from src.tools.health import (
+    get_campaign_status,
+    get_recommendations,
+    get_change_history,
+)
+from src.tools.query import run_gaql_query
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -567,5 +580,205 @@ def tool_push_structure(
     """
     return push_structure(
         structure=json.loads(structure),
+        customer_id=customer_id,
+    )
+
+
+# ============================================================
+# REPORTING TOOLS
+# ============================================================
+
+@mcp.tool()
+def tool_get_campaign_performance(
+    date_range: str = "LAST_30_DAYS",
+    campaign_id: str | None = None,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get campaign performance metrics — impressions, clicks, cost, conversions, CTR, CPC, ROAS.
+
+    Args:
+        date_range: LAST_7_DAYS, LAST_14_DAYS, LAST_30_DAYS, THIS_MONTH, LAST_MONTH,
+                   or custom "YYYY-MM-DD,YYYY-MM-DD"
+        campaign_id: Optional — filter to a specific campaign ID
+        customer_id: Target account
+    """
+    return get_campaign_performance(
+        date_range=date_range,
+        campaign_id=campaign_id,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_get_ad_group_performance(
+    campaign_id: str | None = None,
+    date_range: str = "LAST_30_DAYS",
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get ad group performance metrics broken down by ad group.
+
+    Args:
+        campaign_id: Optional — filter to a specific campaign
+        date_range: LAST_7_DAYS, LAST_14_DAYS, LAST_30_DAYS, THIS_MONTH, LAST_MONTH,
+                   or custom "YYYY-MM-DD,YYYY-MM-DD"
+        customer_id: Target account
+    """
+    return get_ad_group_performance(
+        campaign_id=campaign_id,
+        date_range=date_range,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_get_keyword_performance(
+    campaign_id: str | None = None,
+    ad_group_id: str | None = None,
+    date_range: str = "LAST_30_DAYS",
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get keyword performance with quality scores, ad relevance, and landing page experience.
+
+    Args:
+        campaign_id: Optional campaign filter
+        ad_group_id: Optional ad group filter
+        date_range: LAST_7_DAYS, LAST_14_DAYS, LAST_30_DAYS, THIS_MONTH, LAST_MONTH,
+                   or custom "YYYY-MM-DD,YYYY-MM-DD"
+        customer_id: Target account
+    """
+    return get_keyword_performance(
+        campaign_id=campaign_id,
+        ad_group_id=ad_group_id,
+        date_range=date_range,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_get_search_terms_report(
+    campaign_id: str | None = None,
+    ad_group_id: str | None = None,
+    date_range: str = "LAST_30_DAYS",
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get search terms report — the actual queries people typed that triggered your ads.
+    Great for finding new keyword opportunities and negative keyword candidates.
+
+    Args:
+        campaign_id: Optional campaign filter
+        ad_group_id: Optional ad group filter
+        date_range: LAST_7_DAYS, LAST_14_DAYS, LAST_30_DAYS, THIS_MONTH, LAST_MONTH,
+                   or custom "YYYY-MM-DD,YYYY-MM-DD"
+        customer_id: Target account
+    """
+    return get_search_terms_report(
+        campaign_id=campaign_id,
+        ad_group_id=ad_group_id,
+        date_range=date_range,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_get_ad_performance(
+    campaign_id: str | None = None,
+    ad_group_id: str | None = None,
+    date_range: str = "LAST_30_DAYS",
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get ad performance — see which RSAs are performing best, ad strength, approval status.
+
+    Args:
+        campaign_id: Optional campaign filter
+        ad_group_id: Optional ad group filter
+        date_range: LAST_7_DAYS, LAST_14_DAYS, LAST_30_DAYS, THIS_MONTH, LAST_MONTH,
+                   or custom "YYYY-MM-DD,YYYY-MM-DD"
+        customer_id: Target account
+    """
+    return get_ad_performance(
+        campaign_id=campaign_id,
+        ad_group_id=ad_group_id,
+        date_range=date_range,
+        customer_id=customer_id,
+    )
+
+
+# ============================================================
+# ACCOUNT HEALTH TOOLS
+# ============================================================
+
+@mcp.tool()
+def tool_get_campaign_status(
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get an overview of all campaigns — status, type, budget, bidding strategy, and recent spend.
+    A quick snapshot of what's running.
+
+    Args:
+        customer_id: Target account
+    """
+    return get_campaign_status(customer_id=customer_id)
+
+
+@mcp.tool()
+def tool_get_recommendations(
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get Google's optimization recommendations for the account.
+    Shows what Google suggests to improve performance.
+
+    Args:
+        customer_id: Target account
+    """
+    return get_recommendations(customer_id=customer_id)
+
+
+@mcp.tool()
+def tool_get_change_history(
+    date_range: str = "LAST_7_DAYS",
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get recent changes made in the account — who changed what and when.
+
+    Args:
+        date_range: LAST_7_DAYS, LAST_14_DAYS, LAST_30_DAYS, or "YYYY-MM-DD,YYYY-MM-DD"
+        customer_id: Target account
+    """
+    return get_change_history(
+        date_range=date_range,
+        customer_id=customer_id,
+    )
+
+
+# ============================================================
+# CUSTOM QUERY TOOL
+# ============================================================
+
+@mcp.tool()
+def tool_run_gaql_query(
+    query: str,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Run a custom GAQL (Google Ads Query Language) query for advanced reporting.
+    Use this when the built-in reporting tools don't cover what you need.
+
+    Args:
+        query: A valid GAQL query. Examples:
+            - "SELECT campaign.name, metrics.clicks FROM campaign WHERE segments.date DURING LAST_7_DAYS"
+            - "SELECT ad_group.name, metrics.impressions FROM ad_group WHERE campaign.id = 123456"
+            - "SELECT geographic_view.country_criterion_id, metrics.clicks FROM geographic_view WHERE segments.date DURING LAST_30_DAYS"
+        customer_id: Target account
+    """
+    return run_gaql_query(
+        query=query,
         customer_id=customer_id,
     )
