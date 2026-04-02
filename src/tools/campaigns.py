@@ -72,6 +72,7 @@ def create_campaign(
     campaign_op = campaign_operation.campaign_operation.create
     campaign_op.name = name
     campaign_op.campaign_budget = budget_op.resource_name
+    campaign_op.contains_eu_political_advertising = False
 
     # Campaign type
     type_map = {
