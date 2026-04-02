@@ -74,20 +74,26 @@ def get_enum_type(enum_name: str):
 def search(customer_id: str, query: str):
     """Run a GAQL search query and return results."""
     ga_service = get_service("GoogleAdsService")
-    return ga_service.search(customer_id=customer_id, query=query)
+    return ga_service.search(
+        request={"customer_id": customer_id, "query": query}
+    )
 
 
 def search_stream(customer_id: str, query: str):
     """Run a GAQL search_stream query and yield results."""
     ga_service = get_service("GoogleAdsService")
-    return ga_service.search_stream(customer_id=customer_id, query=query)
+    return ga_service.search_stream(
+        request={"customer_id": customer_id, "query": query}
+    )
 
 
 def mutate(customer_id: str, operations: list, partial_failure: bool = False):
     """Execute mutate operations via GoogleAdsService."""
     ga_service = get_service("GoogleAdsService")
     return ga_service.mutate(
-        customer_id=customer_id,
-        mutate_operations=operations,
-        partial_failure=partial_failure,
+        request={
+            "customer_id": customer_id,
+            "mutate_operations": operations,
+            "partial_failure": partial_failure,
+        }
     )
