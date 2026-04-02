@@ -41,6 +41,11 @@ from src.tools.health import (
     get_change_history,
 )
 from src.tools.query import run_gaql_query
+from src.tools.keyword_research import (
+    get_keyword_ideas,
+    get_search_volume,
+    get_keyword_forecasts,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -780,5 +785,101 @@ def tool_run_gaql_query(
     """
     return run_gaql_query(
         query=query,
+        customer_id=customer_id,
+    )
+
+
+# ============================================================
+# KEYWORD RESEARCH TOOLS
+# ============================================================
+
+@mcp.tool()
+def tool_get_keyword_ideas(
+    seed_keywords: str | None = None,
+    page_url: str | None = None,
+    language_id: str = "1000",
+    location_ids: str | None = None,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Generate keyword ideas from seed keywords and/or a URL.
+    Returns keyword suggestions with search volume, competition, and bid estimates.
+
+    Args:
+        seed_keywords: Comma-separated seed keywords (e.g. "house painting, exterior painter")
+        page_url: URL to extract keyword ideas from
+        language_id: Language ID (default "1000" for English)
+        location_ids: Comma-separated geo target IDs (default "2840" for US)
+        customer_id: Target account
+    """
+    seeds = [s.strip() for s in seed_keywords.split(",")] if seed_keywords else None
+    locs = [l.strip() for l in location_ids.split(",")] if location_ids else None
+    return get_keyword_ideas(
+        seed_keywords=seeds,
+        page_url=page_url,
+        language_id=language_id,
+        location_ids=locs,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_get_search_volume(
+    keywords: str,
+    language_id: str = "1000",
+    location_ids: str | None = None,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get search volume, competition, and bid estimates for specific keywords.
+    Also shows monthly search volume trends for the last 6 months.
+
+    Args:
+        keywords: Comma-separated keywords (e.g. "house painting, exterior painter, residential painting")
+        language_id: Language ID (default "1000" for English)
+        location_ids: Comma-separated geo target IDs (default "2840" for US)
+        customer_id: Target account
+    """
+    kw_list = [k.strip() for k in keywords.split(",")]
+    locs = [l.strip() for l in location_ids.split(",")] if location_ids else None
+    return get_search_volume(
+        keywords=kw_list,
+        language_id=language_id,
+        location_ids=locs,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_get_keyword_forecasts(
+    keywords: str,
+    language_id: str = "1000",
+    location_ids: str | None = None,
+    forecast_period_days: int = 30,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Get click, impression, and cost forecasts for keywords over a given period.
+    Creates a temporary keyword plan, generates forecasts, then cleans up.
+
+    Args:
+        keywords: JSON string — list of keyword objects:
+            - text: keyword text
+            - match_type: BROAD, PHRASE, or EXACT (default BROAD)
+            - cpc_bid_micros: bid in micros (default 2000000 = $2.00)
+          Example: [{"text": "house painting", "match_type": "EXACT", "cpc_bid_micros": 3000000}]
+        language_id: Language ID (default "1000" for English)
+        location_ids: Comma-separated geo target IDs (default "2840" for US)
+        forecast_period_days: Forecast period in days (default 30)
+        customer_id: Target account
+    """
+    import json
+    kw_list = json.loads(keywords)
+    locs = [l.strip() for l in location_ids.split(",")] if location_ids else None
+    return get_keyword_forecasts(
+        keywords=kw_list,
+        language_id=language_id,
+        location_ids=locs,
+        forecast_period_days=forecast_period_days,
         customer_id=customer_id,
     )
