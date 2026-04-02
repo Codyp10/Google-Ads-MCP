@@ -61,7 +61,8 @@ def create_pmax_campaign(
     campaign = campaign_operation.campaign_operation.create
     campaign.name = name
     campaign.campaign_budget = budget.resource_name
-    campaign.contains_eu_political_advertising = False
+    # 3 = DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING (required enum field)
+    campaign.contains_eu_political_advertising = 3
     campaign.advertising_channel_type = client.enums.AdvertisingChannelTypeEnum.PERFORMANCE_MAX
 
     campaign_temp_id = -2

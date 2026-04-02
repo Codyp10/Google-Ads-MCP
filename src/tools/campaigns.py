@@ -72,7 +72,8 @@ def create_campaign(
     campaign_op = campaign_operation.campaign_operation.create
     campaign_op.name = name
     campaign_op.campaign_budget = budget_op.resource_name
-    campaign_op.contains_eu_political_advertising = False
+    # 3 = DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING (required enum field)
+    campaign_op.contains_eu_political_advertising = 3
 
     # Campaign type
     type_map = {
