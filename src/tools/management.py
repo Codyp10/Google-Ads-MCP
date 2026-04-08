@@ -109,7 +109,7 @@ def update_campaign(
             update_fields.append("maximize_conversion_value")
         elif strategy == "MAXIMIZE_CLICKS":
             campaign_op.target_spend.target_spend_micros = 0
-            update_fields.append("target_spend")
+            update_fields.append("target_spend.target_spend_micros")
         elif strategy == "MANUAL_CPC":
             campaign_op.manual_cpc.enhanced_cpc_enabled = False
             update_fields.append("manual_cpc")
