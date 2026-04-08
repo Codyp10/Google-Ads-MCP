@@ -46,6 +46,15 @@ from src.tools.keyword_research import (
     get_search_volume,
     get_keyword_forecasts,
 )
+from src.tools.management import (
+    update_campaign,
+    set_ad_schedule,
+    set_location_targeting,
+    remove_keywords,
+    remove_campaign,
+    update_ad_group,
+    manage_conversion_actions,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -881,5 +890,202 @@ def tool_get_keyword_forecasts(
         language_id=language_id,
         location_ids=locs,
         forecast_period_days=forecast_period_days,
+        customer_id=customer_id,
+    )
+
+
+# ============================================================
+# CAMPAIGN MANAGEMENT TOOLS
+# ============================================================
+
+@mcp.tool()
+def tool_update_campaign(
+    campaign_id: str,
+    name: str | None = None,
+    daily_budget_micros: int | None = None,
+    bidding_strategy: str | None = None,
+    target_cpa_micros: int | None = None,
+    target_roas: float | None = None,
+    status: str | None = None,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Update properties on an existing campaign — budget, bidding, status, name.
+
+    Args:
+        campaign_id: Campaign ID to update
+        name: New campaign name
+        daily_budget_micros: New daily budget in micros (1 dollar = 1,000,000)
+        bidding_strategy: MANUAL_CPC, MAXIMIZE_CLICKS, MAXIMIZE_CONVERSIONS, TARGET_CPA,
+                         TARGET_ROAS, MAXIMIZE_CONVERSION_VALUE, TARGET_IMPRESSION_SHARE
+        target_cpa_micros: Target CPA in micros (for TARGET_CPA/MAXIMIZE_CONVERSIONS)
+        target_roas: Target ROAS float (for TARGET_ROAS/MAXIMIZE_CONVERSION_VALUE)
+        status: ENABLED or PAUSED
+        customer_id: Target account
+    """
+    return update_campaign(
+        campaign_id=campaign_id,
+        name=name,
+        daily_budget_micros=daily_budget_micros,
+        bidding_strategy=bidding_strategy,
+        target_cpa_micros=target_cpa_micros,
+        target_roas=target_roas,
+        status=status,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_set_ad_schedule(
+    campaign_id: str,
+    schedules: str,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Set day/time ad schedule on a campaign. Replaces any existing schedule.
+
+    Args:
+        campaign_id: Campaign to set schedule on
+        schedules: JSON string — list of schedule objects:
+          [{"day_of_week": "MONDAY", "start_hour": 8, "start_minute": "ZERO", "end_hour": 18, "end_minute": "ZERO"}]
+          Valid days: MONDAY-SUNDAY. Valid minutes: ZERO, FIFTEEN, THIRTY, FORTY_FIVE. Hours: 0-24.
+        customer_id: Target account
+    """
+    return set_ad_schedule(
+        campaign_id=campaign_id,
+        schedules=json.loads(schedules),
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_set_location_targeting(
+    campaign_id: str,
+    location_ids: str | None = None,
+    excluded_location_ids: str | None = None,
+    targeting_mode: str = "PRESENCE",
+    customer_id: str | None = None,
+) -> str:
+    """
+    Set geographic targeting on a campaign.
+
+    Args:
+        campaign_id: Campaign to target
+        location_ids: Comma-separated geo target constant IDs to target (e.g. "2840" for US, "1014044" for Sacramento CA)
+        excluded_location_ids: Comma-separated geo target constant IDs to exclude
+        targeting_mode: PRESENCE (people IN the area) or PRESENCE_OR_INTEREST. Default PRESENCE.
+        customer_id: Target account
+
+    Common IDs: 2840 (US), 2826 (UK), 2036 (AU). Find more via:
+    SELECT geo_target_constant.id, geo_target_constant.name FROM geo_target_constant WHERE geo_target_constant.name LIKE '%CityName%'
+    """
+    return set_location_targeting(
+        campaign_id=campaign_id,
+        location_ids=location_ids.split(",") if location_ids else None,
+        excluded_location_ids=excluded_location_ids.split(",") if excluded_location_ids else None,
+        targeting_mode=targeting_mode,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_remove_keywords(
+    criterion_ids: str,
+    ad_group_id: str,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Remove keywords from an ad group.
+
+    Args:
+        criterion_ids: Comma-separated criterion IDs to remove (from tool_get_keyword_performance output)
+        ad_group_id: Ad group containing the keywords
+        customer_id: Target account
+    """
+    return remove_keywords(
+        criterion_ids=[c.strip() for c in criterion_ids.split(",")],
+        ad_group_id=ad_group_id,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_remove_campaign(
+    campaign_id: str,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Remove (soft-delete) a campaign. Sets its status to REMOVED.
+    This cannot be undone — the campaign will no longer serve ads.
+
+    Args:
+        campaign_id: Campaign to remove
+        customer_id: Target account
+    """
+    return remove_campaign(
+        campaign_id=campaign_id,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_update_ad_group(
+    ad_group_id: str,
+    name: str | None = None,
+    cpc_bid_micros: int | None = None,
+    status: str | None = None,
+    customer_id: str | None = None,
+) -> str:
+    """
+    Update ad group properties — bids, status, name.
+
+    Args:
+        ad_group_id: Ad group to update
+        name: New name
+        cpc_bid_micros: New default CPC bid in micros
+        status: ENABLED, PAUSED, or REMOVED
+        customer_id: Target account
+    """
+    return update_ad_group(
+        ad_group_id=ad_group_id,
+        name=name,
+        cpc_bid_micros=cpc_bid_micros,
+        status=status,
+        customer_id=customer_id,
+    )
+
+
+@mcp.tool()
+def tool_manage_conversion_actions(
+    action: str = "list",
+    name: str | None = None,
+    type: str | None = None,
+    category: str | None = None,
+    counting_type: str = "ONE_PER_CLICK",
+    value: float | None = None,
+    value_type: str = "USE_DEFAULT_VALUE",
+    customer_id: str | None = None,
+) -> str:
+    """
+    List or create conversion actions for tracking leads, calls, purchases, etc.
+
+    Args:
+        action: "list" to list all conversion actions, "create" to create a new one
+        name: Conversion action name (required for create)
+        type: WEBPAGE, PHONE_CALL, UPLOAD, etc. (required for create)
+        category: PURCHASE, LEAD, PHONE_CALL_LEAD, SUBMIT_LEAD_FORM, etc. (required for create)
+        counting_type: ONE_PER_CLICK or MANY_PER_CLICK (default ONE_PER_CLICK)
+        value: Default conversion value
+        value_type: USE_DEFAULT_VALUE or USE_VALUE_FROM_TAG
+        customer_id: Target account
+    """
+    return manage_conversion_actions(
+        action=action,
+        name=name,
+        type=type,
+        category=category,
+        counting_type=counting_type,
+        value=value,
+        value_type=value_type,
         customer_id=customer_id,
     )

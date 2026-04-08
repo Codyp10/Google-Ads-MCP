@@ -5,6 +5,7 @@ Account health and status tools.
 - get_change_history: recent changes in the account
 """
 
+from datetime import datetime, timedelta
 from src.utils.google_ads_client import resolve_customer_id, search
 
 
@@ -31,8 +32,6 @@ def get_campaign_status(
             campaign.advertising_channel_type,
             campaign.bidding_strategy_type,
             campaign_budget.amount_micros,
-            campaign.start_date,
-            campaign.end_date,
             metrics.cost_micros,
             metrics.impressions,
             metrics.clicks,
@@ -56,19 +55,12 @@ def get_campaign_status(
             total_budget += budget
             total_spend += m.cost_micros
 
-            dates = ""
-            if c.start_date:
-                dates += f" | Start: {c.start_date}"
-            if c.end_date:
-                dates += f" | End: {c.end_date}"
-
             results.append(
                 f"  {c.name}\n"
                 f"    ID: {c.id} | Status: {c.status.name} | Type: {c.advertising_channel_type.name}\n"
                 f"    Daily Budget: {_format_micros(budget)} | Bidding: {c.bidding_strategy_type.name}\n"
                 f"    Last 30 Days — Spend: {_format_micros(m.cost_micros)} | "
                 f"Impr: {m.impressions:,} | Clicks: {m.clicks:,} | Conv: {m.conversions:.1f}"
-                f"{dates}"
             )
 
         if not results:
@@ -101,15 +93,9 @@ def get_recommendations(
     query = """
         SELECT
             recommendation.type,
-            recommendation.impact.base_metrics.impressions,
-            recommendation.impact.base_metrics.clicks,
-            recommendation.impact.base_metrics.cost_micros,
-            recommendation.impact.base_metrics.conversions,
-            recommendation.impact.potential_metrics.impressions,
-            recommendation.impact.potential_metrics.clicks,
-            recommendation.impact.potential_metrics.cost_micros,
-            recommendation.impact.potential_metrics.conversions,
-            recommendation.campaign
+            recommendation.campaign,
+            recommendation.ad_group,
+            recommendation.resource_name
         FROM recommendation
         ORDER BY recommendation.type
         LIMIT 30
@@ -125,18 +111,13 @@ def get_recommendations(
             rec_type = rec.type_.name
             type_counts[rec_type] = type_counts.get(rec_type, 0) + 1
 
-            base = rec.impact.base_metrics
-            potential = rec.impact.potential_metrics
-
-            impr_change = ""
-            if base.impressions > 0 and potential.impressions > 0:
-                pct = ((potential.impressions - base.impressions) / base.impressions) * 100
-                impr_change = f" (+{pct:.0f}% impressions)"
-
             campaign_name = rec.campaign.split("/")[-1] if rec.campaign else "Account-level"
+            ad_group_info = ""
+            if rec.ad_group:
+                ad_group_info = f" | Ad Group: {rec.ad_group.split('/')[-1]}"
 
             results.append(
-                f"  [{rec_type}] Campaign: {campaign_name}{impr_change}"
+                f"  [{rec_type}] Campaign: {campaign_name}{ad_group_info}"
             )
 
         if not results:
@@ -171,12 +152,26 @@ def get_change_history(
     """
     cid = resolve_customer_id(customer_id)
 
+    now = datetime.now()
     if "," in date_range:
         start, end = date_range.split(",")
-        date_clause = f"change_event.change_date_time BETWEEN '{start.strip()}' AND '{end.strip()}'"
+        start_date = start.strip()
+        end_date = end.strip()
     else:
-        # Map friendly names to actual date logic
-        date_clause = f"change_event.change_date_time DURING {date_range}"
+        # Map friendly names to absolute dates
+        day_map = {
+            "LAST_7_DAYS": 7,
+            "LAST_14_DAYS": 14,
+            "LAST_30_DAYS": 30,
+        }
+        days = day_map.get(date_range.upper(), 7)
+        start_date = (now - timedelta(days=days)).strftime("%Y-%m-%d")
+        end_date = now.strftime("%Y-%m-%d")
+
+    date_clause = (
+        f"change_event.change_date_time >= '{start_date}' "
+        f"AND change_event.change_date_time <= '{end_date}'"
+    )
 
     query = f"""
         SELECT

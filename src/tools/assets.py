@@ -81,7 +81,7 @@ def add_sitelinks(
         asset.sitelink_asset.link_text = sl["link_text"]
         asset.sitelink_asset.description1 = sl.get("description1", "")
         asset.sitelink_asset.description2 = sl.get("description2", "")
-        asset.sitelink_asset.final_urls.append(sl["final_url"])
+        asset.final_urls.append(sl["final_url"])
         operations.append(operation)
         asset_resource_names.append(asset.resource_name)
         temp_id -= 1

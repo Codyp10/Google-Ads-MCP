@@ -100,7 +100,7 @@ def create_campaign(
     elif strategy == "MAXIMIZE_CONVERSION_VALUE":
         campaign_op.maximize_conversion_value.target_roas = target_roas or 0.0
     elif strategy == "MAXIMIZE_CLICKS":
-        campaign_op.maximize_clicks.cpc_bid_ceiling_micros = 0
+        campaign_op.target_spend.target_spend_micros = 0
     elif strategy == "MANUAL_CPC":
         campaign_op.manual_cpc.enhanced_cpc_enabled = False
     elif strategy == "TARGET_CPA":
