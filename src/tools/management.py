@@ -10,6 +10,7 @@ Campaign and ad group management tools.
 """
 
 import json
+from google.protobuf.field_mask_pb2 import FieldMask
 from src.utils.google_ads_client import (
     get_client,
     get_service,
@@ -67,7 +68,7 @@ def update_campaign(
         budget_op.resource_name = budget_resource
         budget_op.amount_micros = daily_budget_micros
 
-        field_mask = client.get_type("FieldMask")
+        field_mask = FieldMask()
         field_mask.paths.append("amount_micros")
         budget_operation.campaign_budget_operation.update_mask.CopyFrom(field_mask)
 
@@ -130,7 +131,7 @@ def update_campaign(
         changes.append(f"  Bidding: {strategy}")
 
     if update_fields:
-        field_mask = client.get_type("FieldMask")
+        field_mask = FieldMask()
         for f in update_fields:
             field_mask.paths.append(f)
         campaign_operation.campaign_operation.update_mask.CopyFrom(field_mask)
@@ -299,7 +300,7 @@ def set_location_targeting(
             client.enums.PositiveGeoTargetTypeEnum.SEARCH_INTEREST
         )
 
-    field_mask = client.get_type("FieldMask")
+    field_mask = FieldMask()
     field_mask.paths.append("geo_target_type_setting.positive_geo_target_type")
     campaign_operation.campaign_operation.update_mask.CopyFrom(field_mask)
     operations.append(campaign_operation)
@@ -432,7 +433,7 @@ def update_ad_group(
     if not update_fields:
         return "No changes specified."
 
-    field_mask = client.get_type("FieldMask")
+    field_mask = FieldMask()
     for f in update_fields:
         field_mask.paths.append(f)
     operation.ad_group_operation.update_mask.CopyFrom(field_mask)
