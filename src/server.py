@@ -51,7 +51,6 @@ from src.tools.management import (
     set_ad_schedule,
     set_location_targeting,
     remove_keywords,
-    remove_campaign,
     update_ad_group,
     manage_conversion_actions,
 )
@@ -1005,25 +1004,6 @@ def tool_remove_keywords(
     return remove_keywords(
         criterion_ids=[c.strip() for c in criterion_ids.split(",")],
         ad_group_id=ad_group_id,
-        customer_id=customer_id,
-    )
-
-
-@mcp.tool()
-def tool_remove_campaign(
-    campaign_id: str,
-    customer_id: str | None = None,
-) -> str:
-    """
-    Remove (soft-delete) a campaign. Sets its status to REMOVED.
-    This cannot be undone — the campaign will no longer serve ads.
-
-    Args:
-        campaign_id: Campaign to remove
-        customer_id: Target account
-    """
-    return remove_campaign(
-        campaign_id=campaign_id,
         customer_id=customer_id,
     )
 
