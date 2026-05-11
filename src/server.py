@@ -54,6 +54,7 @@ from src.tools.management import (
     update_ad_group,
     manage_conversion_actions,
 )
+from src.tools.metadata import get_resource_metadata
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -774,6 +775,24 @@ def tool_get_change_history(
 # ============================================================
 # CUSTOM QUERY TOOL
 # ============================================================
+
+@mcp.tool()
+def tool_get_resource_metadata(resource_name: str) -> str:
+    """
+    Discover the valid GAQL fields, metrics, and segments for a Google Ads resource.
+
+    USE THIS BEFORE writing any custom GAQL query — it returns every selectable,
+    filterable, and sortable field so you don't have to guess field paths.
+    Prevents "Unrecognized field" errors.
+
+    Args:
+        resource_name: The resource to inspect — e.g. 'campaign', 'ad_group',
+                       'ad_group_ad', 'ad_group_criterion', 'customer',
+                       'recommendation', 'change_event', 'keyword_view',
+                       'search_term_view', 'geo_target_constant'
+    """
+    return get_resource_metadata(resource_name=resource_name)
+
 
 @mcp.tool()
 def tool_run_gaql_query(
